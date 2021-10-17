@@ -11,9 +11,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Project
-        uses: actions/checkout@v2
-
       - name: Call WebHook Web
         uses: wei/curl@v1
         with:
