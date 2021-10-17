@@ -10,13 +10,16 @@ namespace NWSCookBook.Services
 {
     public class RecetteService
     {
-        public List<Recette> Recettes = new List<Recette>();
+        public IEnumerable<Recette> Recettes = new List<Recette>();
 
-        public void Seed()
+        public RecetteService Seed()
         {
             Scrapper scrapper = new Scrapper();
 
-            scrapper.GetRecipesLinks();
+            IEnumerable<string> links = scrapper.GetRecipesLinks();
+            Recettes = scrapper.GenerateRecipes(links);
+
+            return (this);
         }
     }
 }

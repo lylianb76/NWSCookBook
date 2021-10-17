@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using NWSCookBook.Models;
 
 namespace NWSCookBook.ScrapperSystem
 {
@@ -16,9 +19,129 @@ namespace NWSCookBook.ScrapperSystem
 
             HTML = client.GetStringAsync(BaseURL).Result;
 
-            UnformattedData data = UnformattedData.Create(HTML, "//*[@id=\"repo-content-pjax-container\"]/div/div[3]/include-fragment/div[2]/div/div[3]/div[2]/span/a" /*/div/div[3]/div[2]/span */);
+            UnformattedData data = UnformattedData.Create(HTML, "//a[contains(@class, 'js-navigation-open') and contains(@class, 'Link--primary')]");
             
-            return (data.Then(i => i.ExtractAttribute("href")));
+            return (data.Then(i => $"https://raw.githubusercontent.com{i.ExtractAttribute("href").Replace("blob/", "")}"));
+        }
+
+        public IEnumerable<Recette> GenerateRecipes(IEnumerable<string> links)
+        {
+            Task<Recette>[] results = links.Select(i => Task.Run(() => ExtractRecipe(i))).ToArray();
+
+            Task.WaitAll(results);
+            return (results
+                .Select(i => i.Result)
+                .Where(i => i != null));
+        }
+
+        public async Task<Recette> ExtractRecipe(string link)
+        {
+            try
+            {
+                int count = 0;
+                string str;
+                string empty;
+                char[] temp;
+                HttpClient client = new HttpClient();
+                Recette recette = new Recette();
+
+                string md = await client.GetStringAsync(link);
+                string[] lines = md
+                    .Split(new[] { '\n', '\r' })
+                    .Select(i => i.Trim())
+                    .Where(i => !string.IsNullOrWhiteSpace(i))
+                    .ToArray();
+
+                if (!Extract(i => recette.Name = i, "# ", lines, ref count))
+                    return (null);
+
+                if (!Extract(i => recette.Author = i, "## [AUTHOR] ", lines, ref count))
+                    return (null);
+                
+                if (!lines[count].StartsWith("!["))
+                    return (null);
+
+                str = lines[count].Replace("![", "");
+
+                recette.AltText = new string(str.TakeWhile(c => c != ']').ToArray());
+
+                str = str.Replace($"{recette.AltText}]", "");
+
+                temp = str.TakeWhile(i => i != '(').ToArray();
+
+                if (temp.Length != 0)
+                {
+                    empty = new string(temp);
+                    str = str.Replace(empty, "");
+                }
+                
+                empty = new string(str.TakeWhile(i => i != '\"').ToArray());
+                recette.ImageURL = empty.Substring(1).Trim();
+
+                str = str.Replace(empty, "").Substring(1);
+
+                recette.AltText = new string(str.TakeWhile(i => i != '"').ToArray());
+
+                while (!lines[count].StartsWith("## [INGREDIENTS]"))
+                {
+                    ++count;
+                }
+                ++count;
+
+                while (!lines[count].StartsWith("## [PREPARATION]"))
+                {
+                    recette.Ingredients.Add(lines[count].Replace("* ", ""));
+                    ++count;
+                }
+                ++count;
+
+                if (recette.Ingredients.Count == 0)
+                    return (null);
+
+                int count2 = 0;
+                while (lines.Length > count)
+                {
+                    recette.Preparation.Add(lines[count].Replace($"{count2}. ", ""));
+                    ++count;
+                    ++count2;
+                }
+
+                recette.URL = CreateMD5($"{recette.Name} {recette.Author}");
+
+                return (recette);
+            }
+            catch (Exception e)
+            {
+                return (null);
+            }
+        }
+
+        public bool Extract(Action<string> fct, string token, string[] lines, ref int count)
+        {
+            if (!lines[count].StartsWith(token))
+                return (false);
+
+            fct(lines[count].Replace(token, ""));
+            ++count;
+            return (true);
+        }
+
+        private static string CreateMD5(string input)
+        {
+            // Use input string to calculate MD5 hash
+            using (System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create())
+            {
+                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+                // Convert the byte array to hexadecimal string
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < hashBytes.Length; i++)
+                {
+                    sb.Append(hashBytes[i].ToString("X2"));
+                }
+                return sb.ToString();
+            }
         }
 
         /*

@@ -1,8 +1,29 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<NWSCookBook.Models.Recette>
+
+@{
+    ViewData["Title"] = "View";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Les Recettes des A1</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Nom</th>
+        <th>Auteur</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (Recette item in Model.OrderBy(i => i.Name))
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Author</td>
+            <td class="text-right">
+                <a class="btn btn-primary" asp-action="Recette" asp-route-id="@item.URL">Accéder à la recette</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

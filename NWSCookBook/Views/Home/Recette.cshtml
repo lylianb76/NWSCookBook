@@ -1,0 +1,39 @@
+﻿@model NWSCookBook.Models.Recette
+
+@{
+    ViewData["Title"] = "Recette";
+}
+
+<h1>@Model.Name</h1>
+Par @Model.Author
+<div>
+    <hr />
+    <div class="d-flex">
+        <div style="width: 50%;">
+            <img style="width: 100%;" src="@Model.ImageURL" title="@Model.AltText" alt="@Model.AltText"/>
+        </div>
+        <div style="margin-left: 5%;">
+            @{
+                int count = 1;
+                foreach (string line in Model.Ingredients)
+                {
+                    <div>@count - @line</div>
+                    
+                    ++count;
+                }
+            }
+        </div>
+    </div>
+    @{
+        count = 1;
+        foreach (string line in Model.Preparation)
+        {
+            <p>@line</p>
+                    
+            ++count;
+        }
+    }
+</div>
+<div>
+    <a asp-action="Index" class="btn btn-primary">Retour aux Recettes</a>
+</div>

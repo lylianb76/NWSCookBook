@@ -13,6 +13,7 @@ namespace TestProject
             Scrapper scrapper = new Scrapper();
 
             IEnumerable<string> links = scrapper.GetRecipesLinks();
+            var r = scrapper.GenerateRecipes(links);
         }
     }
 }

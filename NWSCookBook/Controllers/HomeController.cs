@@ -6,26 +6,41 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using NWSCookBook.Services;
 
 namespace NWSCookBook.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private RecetteService RecetteService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(RecetteService recetteService)
         {
-            _logger = logger;
+            RecetteService = recetteService;
         }
 
+        [Route("/")]
         public IActionResult Index()
         {
-            return View();
+            return View(RecetteService.Recettes);
         }
 
-        public IActionResult Privacy()
+        [HttpGet("/Recette/{id}")]
+        public IActionResult Recette(string id)
         {
-            return View();
+            Recette recette = RecetteService.Recettes.FirstOrDefault(i => i.URL == id);
+
+            if (recette == null)
+                return (RedirectToAction("Index"));
+
+            return View(recette);
+        }
+
+        [HttpGet("/Refresh")]
+        public IActionResult Recette()
+        {
+            RecetteService.Seed();
+            return (Ok());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

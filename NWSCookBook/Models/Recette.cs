@@ -7,11 +7,12 @@ namespace NWSCookBook.Models
 {
     public class Recette
     {
-        public string URL;
-        public string ImageURL;
-        public string Name;
-        public string Author;
-        public IEnumerable<string> Ingredients = Array.Empty<string>();
-        public IEnumerable<string> Preparation = Array.Empty<string>();
+        public string URL { get; set; }
+        public string AltText { get; set; }
+        public string ImageURL { get; set; }
+        public string Name { get; set; }
+        public string Author { get; set; }
+        public List<string> Ingredients { get; set; } = new List<string>();
+        public List<string> Preparation { get; set; } = new List<string>();
     }
 }
