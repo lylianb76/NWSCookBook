@@ -1,5 +1,10 @@
 name: Base Pipeline
 
+on:
+  push:
+    branches:
+      - "master"
+
 jobs:
   build:
 
@@ -8,8 +13,9 @@ jobs:
     steps:
       - name: Checkout Project
         uses: actions/checkout@v2
-                    
+
       - name: Call WebHook Web
         uses: wei/curl@v1
         with:
           args: http://sophos.gg:7676/Refresh
+          
