@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 
 namespace NWSCookBook.ScrapperSystem
@@ -8,15 +10,15 @@ namespace NWSCookBook.ScrapperSystem
         public static string BaseURL = "https://github.com/NWS-A1/NWSCookBook/tree/master/Recettes";
         private string HTML;
 
-        public string[] GetRecipesLinks()
+        public IEnumerable<string> GetRecipesLinks()
         {
             HttpClient client = new HttpClient();
 
             HTML = client.GetStringAsync(BaseURL).Result;
 
-            UnformattedData data = UnformattedData.Create(HTML, "//tbody/tr");
-
-            return (null);
+            UnformattedData data = UnformattedData.Create(HTML, "//*[@id=\"repo-content-pjax-container\"]/div/div[3]/include-fragment/div[2]/div/div[3]/div[2]/span/a" /*/div/div[3]/div[2]/span */);
+            
+            return (data.Then(i => i.ExtractAttribute("href")));
         }
 
         /*
@@ -138,6 +140,6 @@ namespace NWSCookBook.ScrapperSystem
             }).Where(i => i != null);
 
             return (results);
-        }
-    }*/
+        }*/
+    }
 }
